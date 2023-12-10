@@ -1,9 +1,3 @@
-from pydantic import BaseModel
-
-class Stock(BaseModel):
-    symbol: str
-    name: str
-
 class Portfolio:
     def __init__(self):
         self.stocks = set()
