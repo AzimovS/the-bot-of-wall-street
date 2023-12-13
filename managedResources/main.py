@@ -6,7 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
-origins = ['http://localhost:5000', 'http://localhost:5001']
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,7 +18,7 @@ app.add_middleware(
 
 portfolio = Portfolio()
 # MQTT Configuration
-mqtt_broker_address = "localhost"
+mqtt_broker_address = "173.30.0.100"
 mqtt_broker_port = 1883
 stock_added_topic = "monitor/stock-added"
 stock_list_topic = "monitor/stock-list"
@@ -26,7 +26,6 @@ stock_list_topic = "monitor/stock-list"
 # MQTT Client Setup
 mqtt_client = mqtt.Client(client_id="managed_resources")
 mqtt_client.connect(mqtt_broker_address, mqtt_broker_port)
-
 
 @app.get("/stock-list")
 def get_stock_list():

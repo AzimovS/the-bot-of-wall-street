@@ -4,8 +4,8 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
 from datetime import datetime
 
-URL = "http://localhost:8086",
-TOKEN = "se4as_token",
+URL = "http://173.30.0.101:8086"
+TOKEN = "se4as_token"
 ORG = "se4as"
 TRACKING_BUCKET_NAME = "tracking_stocks"
 CSV_COLS = ["symbol", "securityName", "listingExchange", "marketCategory"]
@@ -15,9 +15,9 @@ STARTTIME = "2023-12-10T00:00:00Z"
 class Portfolio:
     def __init__(self):
         self.db_client = influxdb_client.InfluxDBClient(
-            url="http://localhost:8086",
-            token="se4as_token",
-            org="se4as"
+            url=URL,
+            token=TOKEN,
+            org=ORG
         )
         self.create_fill_bucket()
 

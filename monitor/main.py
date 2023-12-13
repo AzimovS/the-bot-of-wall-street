@@ -4,7 +4,7 @@ import pandas as pd
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 # mqtt
-broker = 'localhost'
+broker = '173.30.0.100'
 port = 1883
 stock_added_topic = "monitor/stock-added"
 stock_list_topic = "monitor/stock-list"
@@ -12,7 +12,7 @@ stock_list_topic = "monitor/stock-list"
 bucket = "stocks"
 org = "se4as"
 token = "se4as_token"
-url = "http://localhost:8086"
+url = "http://173.30.0.101:8086"
 time_sleep = 1
 
 db_client = influxdb_client.InfluxDBClient(
@@ -58,6 +58,7 @@ def on_message(mqtt_client, userdata, message):
 
 def main():
     mqtt_client = mqtt.Client(client_id="monitor")
+    print(broker, port)
     mqtt_client.connect(broker, port)
     mqtt_client.on_connect = on_connect
     mqtt_client.on_message = on_message
