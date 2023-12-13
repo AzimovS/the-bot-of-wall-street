@@ -9,11 +9,11 @@ export const getStocks = () => {
 export const addStock = (stock) => {
   return axios
     .post(`${API_ROOT}/add-stock?stock=${stock}`)
-    .then((res) => res.data);
+    .then((res) => res?.data)
 };
 
 export const removeStock = (stock) => {
   return axios
     .post(`${API_ROOT}/remove-stock?stock=${stock}`)
-    .then((res) => res.data);
+    .then((res) => res?.data);
 };

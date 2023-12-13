@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Box, IconButton, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import { tokens } from "../../theme";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
@@ -29,17 +29,25 @@ const Team = () => {
   }, []);
 
   const startTracking = (stock) => {
-    addStock(stock).then((res) => {
-      toast.success(`${res?.message} 🫡`);
-      getStocksData();
-    });
+    addStock(stock)
+      .then((res) => {
+        toast.success(`${res?.message} 🫡`);
+        getStocksData();
+      })
+      .catch((err) => {
+        toast.error(`${err?.response?.data?.detail} 😡`);
+      });
   };
 
   const stopTracking = (stock) => {
-    removeStock(stock).then((res) => {
-      toast.success(`${res?.message} 🥲`);
-      getStocksData();
-    });
+    removeStock(stock)
+      .then((res) => {
+        toast.success(`${res?.message} 🥲`);
+        getStocksData();
+      })
+      .catch((err) => {
+        toast.error(`${err?.response?.data?.detail} 😡`);
+      });
   };
 
   const columns = [
@@ -62,9 +70,9 @@ const Team = () => {
       flex: 1,
     },
     {
-      field: "tracking",
+      field: "_value",
       headerName: "Tracking",
-      renderCell: ({ row: { symbol, tracking } }) => {
+      renderCell: ({ row: { symbol, _value: tracking } }) => {
         return (
           <Box>
             {!tracking ? (

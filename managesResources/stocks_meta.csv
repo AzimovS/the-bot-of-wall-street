@@ -1,9 +1,7 @@
 Nasdaq Traded,symbol,securityName,listingExchange,marketCategory,ETF,Round Lot Size,Test Issue,Financial Status,CQS Symbol,NASDAQ Symbol,NextShares
 Y,A,"Agilent Technologies, Inc. Common Stock",N, ,N,100.0,N,,A,A,N
 Y,AA,Alcoa Corporation Common Stock ,N, ,N,100.0,N,,AA,AA,N
-Y,AAAU,Perth Mint Physical Gold ETF,P, ,Y,100.0,N,,AAAU,AAAU,N
 Y,AACG,"ATA Creativity Global - American Depositary Shares, each representing two common shares",Q,G,N,100.0,N,N,,AACG,N
-Y,AADR,AdvisorShares Dorsey Wright ADR ETF,P, ,Y,100.0,N,,AADR,AADR,N
 Y,AAL,"American Airlines Group, Inc. - Common Stock",Q,Q,N,100.0,N,N,,AAL,N
 Y,AAMC,Altisource Asset Management Corp Com,A, ,N,100.0,N,,AAMC,AAMC,N
 Y,AAME,Atlantic American Corporation - Common Stock,Q,G,N,100.0,N,N,,AAME,N
@@ -15,7 +13,6 @@ Y,AAPL,Apple Inc. - Common Stock,Q,Q,N,100.0,N,N,,AAPL,N
 Y,AAT,"American Assets Trust, Inc. Common Stock",N, ,N,100.0,N,,AAT,AAT,N
 Y,AAU,"Almaden Minerals, Ltd. Common Shares",A, ,N,100.0,N,,AAU,AAU,N
 Y,AAWW,Atlas Air Worldwide Holdings - Common Stock,Q,Q,N,100.0,N,N,,AAWW,N
-Y,AAXJ,iShares MSCI All Country Asia ex Japan Index Fund,Q,G,Y,100.0,N,N,,AAXJ,N
 Y,AAXN,"Axon Enterprise, Inc. - Common Stock",Q,Q,N,100.0,N,N,,AAXN,N
 Y,AB,AllianceBernstein Holding L.P.  Units,N, ,N,100.0,N,,AB,AB,N
 Y,ABB,ABB Ltd Common Stock,N, ,N,100.0,N,,ABB,ABB,N
@@ -23,7 +20,6 @@ Y,ABBV,AbbVie Inc. Common Stock,N, ,N,100.0,N,,ABBV,ABBV,N
 Y,ABC,AmerisourceBergen Corporation Common Stock,N, ,N,100.0,N,,ABC,ABC,N
 Y,ABCB,Ameris Bancorp - Common Stock,Q,Q,N,100.0,N,N,,ABCB,N
 Y,ABEO,Abeona Therapeutics Inc. - Common Stock,Q,S,N,100.0,N,N,,ABEO,N
-Y,ABEQ,Absolute Core Strategy ETF,P, ,Y,100.0,N,,ABEQ,ABEQ,N
 Y,ABEV,Ambev S.A. American Depositary Shares (Each representing 1 Common Share),N, ,N,100.0,N,,ABEV,ABEV,N
 Y,ABG,Asbury Automotive Group Inc Common Stock,N, ,N,100.0,N,,ABG,ABG,N
 Y,ABIO,"ARCA biopharma, Inc. - Common Stock",Q,S,N,100.0,N,N,,ABIO,N
