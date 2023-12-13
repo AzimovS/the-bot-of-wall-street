@@ -1,4 +1,4 @@
-version: '3.6'
+version: "3.6"
 services:
   mosquitto:
     image: eclipse-mosquitto:latest
@@ -26,12 +26,61 @@ services:
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
       - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
     ports:
-      - '8086:8086'
+      - "8086:8086"
     volumes:
       - influxdb_data:/var/lib/influxdb
     networks:
       se4as-network:
         ipv4_address: 173.30.0.101
+
+  managed_resources:
+    build:
+      context: ./managedResources/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./managedResources/:/usr/src/app/
+    restart: always
+    ports:
+      - "8000:8000"
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.102
+    depends_on:
+      - mosquitto
+    links:
+      - influxdb
+
+  frontend:
+    build:
+      context: ./dashboard/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./dashboard/:/usr/src/app/
+    restart: always
+    depends_on:
+      - managed_resources
+    ports:
+      - "5001:5001"
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.103
+
+
+  monitor:
+    build:
+      context: ./monitor/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./monitor/:/usr/src/app/
+    restart: always
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.104
+    depends_on:
+      - mosquitto
+      - managed_resources
+    links:
+      - influxdb
 
 volumes:
   influxdb_data: {}

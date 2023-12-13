@@ -1,67 +1,97 @@
-import { Box, Typography, useTheme } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Box, IconButton, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { tokens } from "../../theme";
-import { mockDataTeam } from "../../data/mockData";
-import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
 import Header from "../../components/Header";
+import { addStock, getStocks, removeStock } from "../../services/stocks";
+
+function getRowId(row) {
+  return row.symbol;
+}
 
 const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [stocks, setStocks] = useState([]);
+
+  const getStocksData = () => {
+    getStocks().then((res) => {
+      setStocks(res);
+    });
+  };
+
+  useEffect(() => {
+    getStocksData();
+  }, []);
+
+  const startTracking = (stock) => {
+    addStock(stock)
+      .then((res) => {
+        toast.success(`${res?.message} 🫡`);
+        getStocksData();
+      })
+      .catch((err) => {
+        toast.error(`${err?.response?.data?.detail} 😡`);
+      });
+  };
+
+  const stopTracking = (stock) => {
+    removeStock(stock)
+      .then((res) => {
+        toast.success(`${res?.message} 🥲`);
+        getStocksData();
+      })
+      .catch((err) => {
+        toast.error(`${err?.response?.data?.detail} 😡`);
+      });
+  };
+
   const columns = [
-    { field: "id", headerName: "ID" },
+    { field: "symbol", headerName: "Symbol" },
     {
-      field: "name",
-      headerName: "Name",
+      field: "securityName",
+      headerName: "Security Name",
+      flex: 2,
+      cellClassName: "name-column--cell",
+    },
+    {
+      field: "listingExchange",
+      headerName: "Listing Exchange",
       flex: 1,
       cellClassName: "name-column--cell",
     },
     {
-      field: "age",
-      headerName: "Age",
-      type: "number",
-      headerAlign: "left",
-      align: "left",
-    },
-    {
-      field: "phone",
-      headerName: "Phone Number",
+      field: "marketCategory",
+      headerName: "Market Category",
       flex: 1,
     },
     {
-      field: "email",
-      headerName: "Email",
-      flex: 1,
-    },
-    {
-      field: "accessLevel",
-      headerName: "Access Level",
-      flex: 1,
-      renderCell: ({ row: { access } }) => {
+      field: "_value",
+      headerName: "Tracking",
+      renderCell: ({ row: { symbol, _value: tracking } }) => {
         return (
-          <Box
-            width="60%"
-            m="0 auto"
-            p="5px"
-            display="flex"
-            justifyContent="center"
-            backgroundColor={
-              access === "admin"
-                ? colors.greenAccent[600]
-                : access === "manager"
-                ? colors.greenAccent[700]
-                : colors.greenAccent[700]
-            }
-            borderRadius="4px"
-          >
-            {access === "admin" && <AdminPanelSettingsOutlinedIcon />}
-            {access === "manager" && <SecurityOutlinedIcon />}
-            {access === "user" && <LockOpenOutlinedIcon />}
-            <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
-              {access}
-            </Typography>
+          <Box>
+            {!tracking ? (
+              <IconButton
+                size="large"
+                color="success"
+                onClick={() => startTracking(symbol)}
+              >
+                <PlayCircleFilledWhiteIcon />
+              </IconButton>
+            ) : (
+              <IconButton
+                size="large"
+                color="warning"
+                onClick={() => stopTracking(symbol)}
+              >
+                <StopCircleIcon />
+              </IconButton>
+            )}
           </Box>
         );
       },
@@ -70,7 +100,7 @@ const Team = () => {
 
   return (
     <Box m="20px">
-      <Header title="TEAM" subtitle="Managing the Team Members" />
+      <Header title="STOCKS" subtitle="Managing the portfolio" />
       <Box
         m="40px 0 0 0"
         height="75vh"
@@ -100,7 +130,7 @@ const Team = () => {
           },
         }}
       >
-        <DataGrid checkboxSelection rows={mockDataTeam} columns={columns} />
+        <DataGrid getRowId={getRowId} rows={stocks} columns={columns} />
       </Box>
     </Box>
   );
