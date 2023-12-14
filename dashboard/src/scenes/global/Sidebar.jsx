@@ -11,6 +11,8 @@ import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
+import ReceiptIcon from '@mui/icons-material/Receipt';
+
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -135,9 +137,9 @@ const Sidebar = () => {
               setSelected={setSelected}
             />
             <Item
-              title="Contacts Information"
-              to="/contacts"
-              icon={<ContactsOutlinedIcon />}
+              title="Transactions"
+              to="/transactions"
+              icon={<ReceiptIcon />}
               selected={selected}
               setSelected={setSelected}
             />

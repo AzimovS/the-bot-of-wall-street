@@ -4,8 +4,8 @@ import { ToastContainer } from 'react-toastify';
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
 import Dashboard from "./scenes/dashboard";
-import Team from "./scenes/team";
-import Contacts from "./scenes/contacts";
+import Stocks from "./scenes/stocks";
+import Transactions from "./scenes/transactions";
 import Line from "./scenes/line";
 import Pie from "./scenes/pie";
 import { CssBaseline, ThemeProvider } from "@mui/material";
@@ -26,8 +26,8 @@ function App() {
             <Topbar setIsSidebar={setIsSidebar} />
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/stock-list" element={<Team />} />
-              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/stock-list" element={<Stocks />} />
+              <Route path="/transactions" element={<Transactions />} />
               <Route path="/pie" element={<Pie />} />
               <Route path="/line" element={<Line />} />
             </Routes>
