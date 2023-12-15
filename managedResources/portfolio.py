@@ -1,4 +1,3 @@
-import paho.mqtt.client as mqtt
 import influxdb_client
 from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
