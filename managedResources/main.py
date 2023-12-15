@@ -18,8 +18,8 @@ app.add_middleware(
 )
 
 # MQTT Configuration
-stock_added_topic = "monitor/stock-added"
-stock_list_topic = "monitor/stock-list"
+stock_added_data = "monitor/stock-added"
+stock_list_topic = "monitor/completed"
 
 # MQTT Client Setup
 mqtt_config = MQTTConfig(host="173.30.0.100", port=1883)
@@ -41,7 +41,7 @@ def add_stock(stock: str):
     is_added = portfolio.add_stock(stock)
     if not is_added:
         raise HTTPException(status_code=404, detail="Item not found")
-    fast_mqtt.publish(stock_added_topic, stock)
+    fast_mqtt.publish(stock_added_data, stock)
     return {"message": f"Started tracking stock: {stock}"}
 
 
