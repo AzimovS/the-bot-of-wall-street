@@ -199,6 +199,45 @@ export const mockDataContacts = [
   },
 ];
 
+export const mockStocks = [
+  {
+    id: 0,
+    symbol: "A",
+    shares: "10",
+    price: "100",
+  },
+  {
+    id: 1,
+    symbol: "AAT",
+    shares: "10",
+    price: "100",
+  },
+  {
+    id: 2,
+    symbol: "AAOI",
+    shares: "30",
+    price: "20",
+  },
+  {
+    id: 3,
+    symbol: "AAPL",
+    shares: "3",
+    price: "100",
+  },
+  {
+    id: 4,
+    symbol: "ABC",
+    shares: "5",
+    price: "100",
+  },
+  {
+    id: 5,
+    symbol: "ABC",
+    shares: "5",
+    price: "100",
+  },
+];
+
 export const mockTransactions = [
   {
     id: 0,
@@ -208,9 +247,10 @@ export const mockTransactions = [
     predictedPrice: "110",
     action: "BUY",
     time: "2021-09-01",
-    cost: "-20",
-    profit: "-15"
-  },{
+    cost: "-20.2",
+    profit: "15",
+  },
+  {
     id: 1,
     txId: "01e4dsa",
     symbol: "AAPL",
@@ -219,9 +259,9 @@ export const mockTransactions = [
     action: "SELL",
     time: "2021-09-01",
     cost: "43.95",
-    profit: "10"
-  }
-  ];
+    profit: "10",
+  },
+];
 
 export const mockBarData = [
   {
