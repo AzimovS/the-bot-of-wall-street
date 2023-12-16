@@ -5,11 +5,13 @@ from river import time_series
 import pickle
 from os.path import exists
 import paho.mqtt.client as mqtt
+import json
 
 # mqtt
 broker = 'localhost'
 port = 1883
 analyze_stock_topic = "analyzer/predict/stock"
+plan_stock_topic = "planner/prediction/stock"
 # influxdb
 bucket = "stocks"
 org = "se4as"
@@ -33,9 +35,11 @@ def on_message(mqtt_client, userdata, message):
         try:
            result = query_influxdb(bucket, stock_symbol, "Open")
            parsed_results, last_day, last_price = parse_db_results(result)
-           call_model(stock_symbol, parsed_results, last_day, last_price)
+           predicted_price = call_model(stock_symbol, parsed_results, last_day, last_price)
         except:
            print("An error has occurred while querying the database. Please check stock symbol is a valid measurement")
+        payload = {'stock_symbol': stock_symbol, 'current_price': last_price, 'predicted_price': predicted_price}
+        mqtt_client.publish(plan_stock_topic, json.dumps(payload))
 
 def query_influxdb(bucket, measurement, field):
    query = f'from(bucket:"{bucket}")\
@@ -91,19 +95,22 @@ def predict_stock_price(model, last_day):
    next_day = last_day + dt.timedelta(days=1)
    future = [{'next_day': dt.date(year=next_day.year, month=next_day.month, day=next_day.day)}]
    forecast = model.forecast(horizon=horizon)
-
+   predicted_price = 0
    for x, y_pred in zip(future, forecast):
       print(x["next_day"], f'{y_pred:.3f}')
+      predicted_price = y_pred
+   return predicted_price
 
 def call_model(stock_symbol, parsed_results, last_day, last_price):
    if(model_exists(stock_symbol)):
       model = retrieve_model(stock_symbol)
       update_model(stock_symbol, model, last_price)
-      predict_stock_price(model, last_day + dt.timedelta(days=1))
+      predicted_price = predict_stock_price(model, last_day)
    else:
       model = train_model(parsed_results)
-      predict_stock_price(model, last_day)
+      predicted_price = predict_stock_price(model, last_day)
       save_model(stock_symbol, model)
+   return predicted_price
 
 def main():
    mqtt_client = mqtt.Client(client_id="analyzer")
