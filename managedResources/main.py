@@ -22,6 +22,7 @@ app.add_middleware(
 
 # MQTT Configuration
 stock_added_data = "monitor/stock/added"
+stock_removed_data = "monitor/stock/removed"
 stock_list_topic = "monitor/completed"
 
 # MQTT Client Setup
@@ -54,4 +55,5 @@ def remove_stock(stock: str):
     is_removed = portfolio.remove_stock(stock)
     if not is_removed:
         raise HTTPException(status_code=404, detail="Item not found")
+    fast_mqtt.publish(stock_removed_data, stock)
     return {"message": f"Stopped tracking stock: {stock}"}

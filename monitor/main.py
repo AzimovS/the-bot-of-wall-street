@@ -7,13 +7,16 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+STARTTIME = config['influxdb']['STARTTIME']
 # mqtt
 stock_added_topic = "monitor/stock/added"
+stock_removed_topic = "monitor/stock/removed"
 topic_for_monitoring = "monitor/completed"
 topic_notify_anlyzer = "analyzer/predict/stock"
 
 # influxdb
 org = config['influxdb']['ORG']
+bucket_name = config['influxdb']['BUCKET_NAME']
 
 db_client = influxdb_client.InfluxDBClient(
     url=config['influxdb']['URL'],
@@ -22,6 +25,7 @@ db_client = influxdb_client.InfluxDBClient(
 )
 
 stock_to_row_id = dict()
+stock_to_monitor = dict()
 
 
 def on_connect(mqtt_client, userdata, flags, rc):
@@ -31,6 +35,8 @@ def on_connect(mqtt_client, userdata, flags, rc):
 
 
 def save_entries_to_db(stock_symbol, start_row, end_row):
+    if end_row <= start_row:
+        return
     stock_data = pd.read_csv(f'./stocks/{stock_symbol}.csv', header=0)
     stock_data = stock_data.loc[start_row:end_row]
     write_api = db_client.write_api(write_options=SYNCHRONOUS)
@@ -41,20 +47,38 @@ def save_entries_to_db(stock_symbol, start_row, end_row):
             "time": row['Date'],
             "fields": {col: row[col] for col in stock_data.columns if col != 'Date'}
         }
-        write_api.write(bucket=config['influxdb']
-                        ['BUCKET_NAME'], org=org, record=data_point)
+        write_api.write(bucket=bucket_name, org=org, record=data_point)
         stock_to_row_id[stock_symbol] = index
 
 
+def is_stock_in_db(stock_symbol):
+    query = f'from(bucket:"{bucket_name}")\
+    |> range(start: {STARTTIME})\
+    |> filter(fn:(r) => r._measurement == "{stock_symbol}")'
+    result = db_client.query_api().query(org="se4as", query=query)
+    if not result:
+        return False
+    return True
+
+
 def on_message(mqtt_client, userdata, message):
+    stock_symbol = message.payload.decode()
+    if message.topic == stock_removed_topic:
+        stock_to_monitor[stock_symbol] = False
+        return
+    elif message.topic == topic_for_monitoring and not stock_to_monitor[stock_symbol]:
+        return
+
     start_row, end_row = None, None
     if message.topic == stock_added_topic:
-        stock_symbol = message.payload.decode()
-        start_row = 0
-        end_row = 50
-        save_entries_to_db(stock_symbol, start_row=0, end_row=50)
+        stock_to_monitor[stock_symbol] = True
+        if is_stock_in_db(stock_symbol):
+            start_row = stock_to_row_id[stock_symbol]
+            end_row = start_row + 1
+        else:
+            start_row = 0
+            end_row = 50
     elif message.topic == topic_for_monitoring:
-        stock_symbol = message.payload.decode()
         start_row = stock_to_row_id[stock_symbol]
         end_row = start_row + 1
     save_entries_to_db(stock_symbol, start_row, end_row)
