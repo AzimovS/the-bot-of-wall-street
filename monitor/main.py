@@ -1,27 +1,28 @@
 import paho.mqtt.client as mqtt
 import influxdb_client
 import pandas as pd
+import configparser
 from influxdb_client.client.write_api import SYNCHRONOUS
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 # mqtt
-broker = '173.30.0.100'
-port = 1883
-stock_added_topic = "monitor/stock-added"
+stock_added_topic = "monitor/stock/added"
 topic_for_monitoring = "monitor/completed"
-topic_notify_anlyzer = "analyzer"
+topic_notify_anlyzer = "analyzer/predict/stock"
+
 # influxdb
-bucket = "stocks"
-org = "se4as"
-token = "se4as_token"
-url = "http://173.30.0.101:8086"
+org = config['influxdb']['ORG']
 
 db_client = influxdb_client.InfluxDBClient(
-    url=url,
-    token=token,
+    url=config['influxdb']['URL'],
+    token=config['influxdb']['TOKEN'],
     org=org
 )
 
 stock_to_row_id = dict()
+
 
 def on_connect(mqtt_client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
@@ -40,7 +41,8 @@ def save_entries_to_db(stock_symbol, start_row, end_row):
             "time": row['Date'],
             "fields": {col: row[col] for col in stock_data.columns if col != 'Date'}
         }
-        write_api.write(bucket=bucket, org=org, record=data_point)
+        write_api.write(bucket=config['influxdb']
+                        ['BUCKET_NAME'], org=org, record=data_point)
         stock_to_row_id[stock_symbol] = index
 
 
@@ -61,8 +63,7 @@ def on_message(mqtt_client, userdata, message):
 
 def main():
     mqtt_client = mqtt.Client(client_id="monitor")
-    print(broker, port)
-    mqtt_client.connect(broker, port)
+    mqtt_client.connect(config['mqtt']['broker'], int(config['mqtt']['port']))
     mqtt_client.on_connect = on_connect
     mqtt_client.on_message = on_message
     mqtt_client.loop_forever()

@@ -1,9 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi_mqtt import FastMQTT, MQTTConfig
-import json
-from portfolio import Portfolio
 from starlette.middleware.cors import CORSMiddleware
+import json
+import configparser
+from portfolio import Portfolio
 
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 app = FastAPI()
 portfolio = Portfolio()
@@ -18,11 +21,12 @@ app.add_middleware(
 )
 
 # MQTT Configuration
-stock_added_data = "monitor/stock-added"
+stock_added_data = "monitor/stock/added"
 stock_list_topic = "monitor/completed"
 
 # MQTT Client Setup
-mqtt_config = MQTTConfig(host="173.30.0.100", port=1883)
+mqtt_config = MQTTConfig(
+    host=config['mqtt']['broker'], port=config['mqtt']['port'])
 
 fast_mqtt = FastMQTT(
     config=mqtt_config,

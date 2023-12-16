@@ -1,14 +1,18 @@
 import influxdb_client
 from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
+import configparser
 from datetime import datetime
 
-URL = "http://173.30.0.101:8086"
-TOKEN = "se4as_token"
-ORG = "se4as"
-TRACKING_BUCKET_NAME = "tracking_stocks"
-CSV_COLS = ["symbol", "securityName", "listingExchange", "marketCategory"]
-STARTTIME = "2023-12-10T00:00:00Z"
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+URL = config['influxdb']['URL']
+TOKEN = config['influxdb']['TOKEN']
+ORG = config['influxdb']['ORG']
+TRACKING_BUCKET_NAME = config['influxdb']['TRACKING_BUCKET_NAME']
+CSV_COLS = config['influxdb']['CSV_COLS'].split('|')
+STARTTIME = config['influxdb']['STARTTIME']
 
 
 class Portfolio:
@@ -36,7 +40,6 @@ class Portfolio:
                 }
                 write_api.write(bucket=TRACKING_BUCKET_NAME,
                                 org=ORG, record=data_point)
-            print("Done Filling the data")
 
     def get_stock_list(self):
         query = f'from(bucket:"tracking_stocks")\
