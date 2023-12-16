@@ -63,7 +63,7 @@ def sell_stock(stock_symbol, price):
     quantity, buying_price = get_stocks_owned(stock_symbol)
     investment += (quantity * price)
     update_investment(investment)
-    update_stocks_owned(stock_symbol, 0, 0)
+    update_stocks_owned(stock_symbol, 0, 0.0)
 
     log_transaction("sell", stock_symbol, price, profit=quantity*(price-buying_price))
 
@@ -74,7 +74,7 @@ def get_investment():
         |> filter(fn:(r) => r._measurement == "investment")\
         |> filter(fn:(r) => r._field == "value")'
     result = db_query_api.query(org=INFLUXDB_ORG, query=query)
-    if len(result) > 0 and len(result[0].records > 0):
+    if len(result) > 0 and len(result[0].records) > 0:
         value = result[0].records[-1].get_value()
 
     return value
@@ -92,33 +92,36 @@ def get_stocks_owned(stock_symbol):
         |> filter(fn:(r) => r._measurement == "{stock_symbol}")'
     value, price = 0, 0
     tables = db_query_api.query(org=INFLUXDB_ORG, query=query)
-    if len(tables) > 0 and len(tables[0].records > 0):
-        value, price = tables[0].records[-1]["quantity"], tables[0].records[-1]["price"]
+    if len(tables) > 0 and len(tables[0].records) > 0:
+        last_record = tables[0].records[-1]
+        value, price = int(last_record["quantity"]), last_record.get_value()
     
     return value, price
 
 def update_stocks_owned(stock_symbol, quantity, price):
     point = {
         "measurement": stock_symbol,
+        "tags": {
+            "quantity": quantity
+        },
         "fields": {
-            "quantity": quantity,
             "price": price
         }
     }
     db_write_api.write(bucket=INFLUXDB_BUCKET_PORTFOLIO, record=point)
 
-def log_transaction(action, stock_symbol, price, profit=None):
+def log_transaction(action, stock_symbol, price, profit=0.0):
     check_create_bucket(INFLUXDB_BUCKET_TRANSACTIONS)
-    fields = {
-        "action": action,
-        "price": price # TODO add predicted price
-    }
-    if profit is not None:
-        fields["profit"] = profit
 
     point = {
         "measurement": stock_symbol,
-        "fields": fields
+        "tags": {
+            "action": action,
+            "price": price # TODO add predicted price
+        },
+        "fields": {
+            "profit": profit
+        }
     }
     db_write_api.write(bucket=INFLUXDB_BUCKET_TRANSACTIONS, record=point)
 

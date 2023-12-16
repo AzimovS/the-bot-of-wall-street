@@ -41,7 +41,8 @@ def get_stocks_owned(stock_symbol):
             |> filter(fn:(r) => r._measurement == "{stock_symbol}")'
         tables = db_query_api.query(org=INFLUXDB_ORG, query=query)
         if len(tables) > 0 and len(tables[0].records) > 0:
-            quantity, price = tables[0].records[-1]["quantity"], tables[0].records[-1]["price"]
+            last_record = tables[0].records[-1]
+            quantity, price = int(last_record["quantity"]), last_record.get_value()
 
     return quantity, price
 
