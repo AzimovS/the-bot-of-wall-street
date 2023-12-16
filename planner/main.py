@@ -46,7 +46,12 @@ def get_stocks_owned(stock_symbol):
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+msg.payload.decode())
-    payload_dict = json.loads(msg.payload.decode())
+    try:
+        payload_dict = json.loads(msg.payload.decode())
+    except Exception as e:
+        print("error decoding received message:", e)
+        return
+
     stock_symbol = payload_dict['stock_symbol']
     predicted_price = payload_dict['predicted_price']
     latest_price = payload_dict['current_price']
