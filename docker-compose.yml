@@ -81,6 +81,22 @@ services:
       - managed_resources
     links:
       - influxdb
+  
+  analyzer:
+    build:
+      context: ./analyzer/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./analyzer/:/usr/src/app/
+    restart: always
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.105
+    depends_on:
+      - mosquitto
+      - influxdb
+    links:
+      - influxdb
 
 volumes:
   influxdb_data: {}
