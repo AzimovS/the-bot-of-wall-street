@@ -52,7 +52,12 @@ def on_message(client, userdata, msg):
     latest_price = payload_dict['current_price']
     action = decide_action(predicted_price, latest_price, stock_symbol)
     if action is not None:
-        client.publish(MQTT_TOPIC_EXECUTOR, f"{action} {stock_symbol} {latest_price}")
+        executor_payload = {
+            "action": action,
+            "stock": stock_symbol,
+            "price": latest_price
+        }
+        client.publish(MQTT_TOPIC_EXECUTOR, json.dumps(executor_payload, indent=None))
 
 mqtt_client = mqtt.Client()
 mqtt_client.on_connect = on_connect
