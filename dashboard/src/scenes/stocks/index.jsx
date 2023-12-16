@@ -13,7 +13,7 @@ function getRowId(row) {
   return row.symbol;
 }
 
-const Team = () => {
+const Stocks = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [stocks, setStocks] = useState([]);
@@ -136,4 +136,4 @@ const Team = () => {
   );
 };
 
-export default Team;
+export default Stocks;

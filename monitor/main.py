@@ -1,32 +1,33 @@
 import paho.mqtt.client as mqtt
 import influxdb_client
 import pandas as pd
+import configparser
 from influxdb_client.client.write_api import SYNCHRONOUS
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 # mqtt
-broker = '173.30.0.100'
-port = 1883
-stock_added_topic = "monitor/stock-added"
-stock_list_topic = "monitor/stock-list"
+stock_added_topic = "monitor/stock/added"
+topic_for_monitoring = "monitor/completed"
+topic_notify_anlyzer = "analyzer/predict/stock"
+
 # influxdb
-bucket = "stocks"
-org = "se4as"
-token = "se4as_token"
-url = "http://173.30.0.101:8086"
-time_sleep = 1
+org = config['influxdb']['ORG']
 
 db_client = influxdb_client.InfluxDBClient(
-    url=url,
-    token=token,
+    url=config['influxdb']['URL'],
+    token=config['influxdb']['TOKEN'],
     org=org
 )
 
 stock_to_row_id = dict()
 
+
 def on_connect(mqtt_client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     mqtt_client.subscribe(stock_added_topic)
-    mqtt_client.subscribe(stock_list_topic)
+    mqtt_client.subscribe(topic_for_monitoring)
 
 
 def save_entries_to_db(stock_symbol, start_row, end_row):
@@ -40,26 +41,29 @@ def save_entries_to_db(stock_symbol, start_row, end_row):
             "time": row['Date'],
             "fields": {col: row[col] for col in stock_data.columns if col != 'Date'}
         }
-        write_api.write(bucket=bucket, org=org, record=data_point)
+        write_api.write(bucket=config['influxdb']
+                        ['BUCKET_NAME'], org=org, record=data_point)
         stock_to_row_id[stock_symbol] = index
 
 
 def on_message(mqtt_client, userdata, message):
+    start_row, end_row = None, None
     if message.topic == stock_added_topic:
         stock_symbol = message.payload.decode()
-        print("data added")
+        start_row = 0
+        end_row = 50
         save_entries_to_db(stock_symbol, start_row=0, end_row=50)
-    elif message.topic == stock_list_topic:
-        print(message.payload.decode())
+    elif message.topic == topic_for_monitoring:
         stock_symbol = message.payload.decode()
         start_row = stock_to_row_id[stock_symbol]
-        save_entries_to_db(stock_symbol, start_row, start_row + 1)
+        end_row = start_row + 1
+    save_entries_to_db(stock_symbol, start_row, end_row)
+    mqtt_client.publish(topic_notify_anlyzer, stock_symbol)
 
 
 def main():
     mqtt_client = mqtt.Client(client_id="monitor")
-    print(broker, port)
-    mqtt_client.connect(broker, port)
+    mqtt_client.connect(config['mqtt']['broker'], int(config['mqtt']['port']))
     mqtt_client.on_connect = on_connect
     mqtt_client.on_message = on_message
     mqtt_client.loop_forever()

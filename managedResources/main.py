@@ -1,11 +1,15 @@
 from fastapi import FastAPI, HTTPException
-import paho.mqtt.client as mqtt
-import json
-from portfolio import Portfolio
+from fastapi_mqtt import FastMQTT, MQTTConfig
 from starlette.middleware.cors import CORSMiddleware
+import json
+import configparser
+from portfolio import Portfolio
 
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 app = FastAPI()
+portfolio = Portfolio()
 origins = ["*"]
 
 app.add_middleware(
@@ -16,16 +20,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-portfolio = Portfolio()
 # MQTT Configuration
-mqtt_broker_address = "173.30.0.100"
-mqtt_broker_port = 1883
-stock_added_topic = "monitor/stock-added"
-stock_list_topic = "monitor/stock-list"
+stock_added_data = "monitor/stock/added"
+stock_list_topic = "monitor/completed"
 
 # MQTT Client Setup
-mqtt_client = mqtt.Client(client_id="managed_resources")
-mqtt_client.connect(mqtt_broker_address, mqtt_broker_port)
+mqtt_config = MQTTConfig(
+    host=config['mqtt']['broker'], port=config['mqtt']['port'])
+
+fast_mqtt = FastMQTT(
+    config=mqtt_config,
+    client_id="managed_resources"
+)
+fast_mqtt.init_app(app)
+
 
 @app.get("/stock-list")
 def get_stock_list():
@@ -37,7 +45,7 @@ def add_stock(stock: str):
     is_added = portfolio.add_stock(stock)
     if not is_added:
         raise HTTPException(status_code=404, detail="Item not found")
-    mqtt_client.publish(stock_added_topic, stock)
+    fast_mqtt.publish(stock_added_data, stock)
     return {"message": f"Started tracking stock: {stock}"}
 
 
