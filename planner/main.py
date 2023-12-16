@@ -1,11 +1,11 @@
-import re
+import json
 import paho.mqtt.client as mqtt
 import influxdb_client
 
 INFLUXDB_URL = "http://localhost:8086"
 INFLUXDB_TOKEN = "se4as_token"
 INFLUXDB_ORG = "se4as"
-INFLUXDB_BUCKET = "stocks"
+INFLUXDB_BUCKET = "portfolio"
 
 db_client = influxdb_client.InfluxDBClient(
     url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG
@@ -24,47 +24,35 @@ def on_connect(client, userdata, flags, rc):
     # reconnect then subscriptions will be renewed.
     client.subscribe(MQTT_TOPIC_ANALYZER)
 
-timestamp_pattern = re.compile(r'\d+|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z')
-def parse_message(payload):
-    price_str, timestamp_str = payload.split()
-    try:
-        predicted_price = float(price_str)
-    except ValueError:
-        raise ValueError("Incorrect value for price")
-    if timestamp_pattern.fullmatch(timestamp_str) is None:
-        raise ValueError("Incorrect value for timestamp")
-    return (predicted_price, timestamp_str)
-
-def decide_action(predicted_price, latest_price):
+def decide_action(predicted_price, latest_price, stock_symbol):
+    quantity_stocks, _ = get_stocks_owned(stock_symbol)
     if latest_price < predicted_price:
-        return 'buy'
+        if quantity_stocks == 0:
+            return 'buy'
     else:
-        return 'sell'
+        if quantity_stocks > 0:
+            return 'sell'
+
+def get_stocks_owned(stock_symbol):
+    query = f'from(bucket:"{INFLUXDB_BUCKET}")\
+        |> range(start:-1h)\
+        |> filter(fn:(r) => r._measurement == "{stock_symbol}")'
+    quantity, price = 0, 0
+    tables = db_query_api.query(org=INFLUXDB_ORG, query=query)
+    if len(tables) > 0 and len(tables[0].records > 0):
+        quantity, price = tables[0].records[-1]["quantity"], tables[0].records[-1]["price"]
+
+    return quantity, price
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+msg.payload.decode())
-    stock_symbol = msg.topic.split("/")[-1]
-    try:
-        predicted_price, timestamp = parse_message(msg.payload.decode())
-    except Exception as e:
-        print("error decoding message from analyzer:", e)
-        return
-
-    query = f'from(bucket:"{INFLUXDB_BUCKET}")\
-        |> range(start: 0, stop: {timestamp})\
-        |> filter(fn:(r) => r._measurement == "{stock_symbol}")\
-        |> filter(fn:(r) => r._field == "Close")'
-    result = db_query_api.query(org=INFLUXDB_ORG, query=query)
-    if len(result) > 0:
-        if len(result[0].records) > 0:
-            latest_price = result[0].records[-1].get_value()
-            print(stock_symbol, "-", latest_price, "-", result[0].records[-1].get_time())
-            action = decide_action(predicted_price, latest_price)
-            client.publish(MQTT_TOPIC_EXECUTOR, f"{action} {stock_symbol}")
-        else:
-            print("No stock prices found for stock", stock_symbol)
-    else:
-        print("query without results :(")
+    payload_dict = json.loads(msg.payload.decode())
+    stock_symbol = payload_dict['stock_symbol']
+    predicted_price = payload_dict['predicted_price']
+    latest_price = payload_dict['current_price']
+    action = decide_action(predicted_price, latest_price, stock_symbol)
+    if action is not None:
+        client.publish(MQTT_TOPIC_EXECUTOR, f"{action} {stock_symbol}")
 
 mqtt_client = mqtt.Client()
 mqtt_client.on_connect = on_connect
