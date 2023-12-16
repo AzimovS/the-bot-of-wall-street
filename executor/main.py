@@ -55,8 +55,6 @@ def buy_stock(stock_symbol, price):
     update_investment(investment)
     update_stocks_owned(stock_symbol, quantity, price)
 
-    log_transaction("buy", stock_symbol, price)
-
 def sell_stock(stock_symbol, price):
     print("Selling", stock_symbol, "stock at price", price)
     investment = get_investment()
@@ -65,7 +63,7 @@ def sell_stock(stock_symbol, price):
     update_investment(investment)
     update_stocks_owned(stock_symbol, 0, 0.0)
 
-    log_transaction("sell", stock_symbol, price, profit=quantity*(price-buying_price))
+    return quantity*(price-buying_price)
 
 def get_investment():
     value = INVESTMENT_INITIAL_VALUE
@@ -110,14 +108,15 @@ def update_stocks_owned(stock_symbol, quantity, price):
     }
     db_write_api.write(bucket=INFLUXDB_BUCKET_PORTFOLIO, record=point)
 
-def log_transaction(action, stock_symbol, price, profit=0.0):
+def log_transaction(action, stock_symbol, price, predicted_price, profit=0.0):
     check_create_bucket(INFLUXDB_BUCKET_TRANSACTIONS)
 
     point = {
         "measurement": stock_symbol,
         "tags": {
             "action": action,
-            "price": price # TODO add predicted price
+            "price": price,
+            "predicted_price": predicted_price
         },
         "fields": {
             "profit": profit
@@ -131,6 +130,7 @@ def on_message(client, userdata, msg):
         action = payload_dict["action"]
         stock = payload_dict["stock"]
         price = payload_dict["price"]
+        predicted_price = payload_dict["predicted_price"]
     except Exception as e:
         print("error decoding received message:", e)
         return
@@ -138,11 +138,12 @@ def on_message(client, userdata, msg):
     check_create_bucket(INFLUXDB_BUCKET_PORTFOLIO)
     if action == "buy":
         buy_stock(stock, price)
+        profit = 0.0
     else:
-        sell_stock(stock, price)
+        profit = sell_stock(stock, price)
     # stock symbol, action, price, profit, predicted price
     # if we already have a stock, don't buy it again
-
+    log_transaction(action, stock, price, predicted_price, profit)
     client.publish(f"{MQTT_TOPIC_MONITOR}", stock)
 
 mqtt_client = mqtt.Client()

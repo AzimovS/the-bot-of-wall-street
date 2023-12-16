@@ -66,7 +66,8 @@ def on_message(client, userdata, msg):
         executor_payload = {
             "action": action,
             "stock": stock_symbol,
-            "price": latest_price
+            "price": latest_price,
+            "predicted_price": predicted_price
         }
         client.publish(MQTT_TOPIC_EXECUTOR, json.dumps(executor_payload, indent=None))
 
