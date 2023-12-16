@@ -8,7 +8,7 @@ import paho.mqtt.client as mqtt
 import json
 
 # mqtt
-broker = 'localhost'
+broker = '173.30.0.100'
 port = 1883
 analyze_stock_topic = "analyzer/predict/stock"
 plan_stock_topic = "planner/prediction/stock"
@@ -16,7 +16,7 @@ plan_stock_topic = "planner/prediction/stock"
 bucket = "stocks"
 org = "se4as"
 token = "se4as_token"
-url="http://localhost:8086"
+url="173.30.0.101:8086"
 
 client = influxdb_client.InfluxDBClient(
    url=url,
