@@ -199,54 +199,67 @@ export const mockDataContacts = [
   },
 ];
 
+export const mockStocks = [
+  {
+    id: 0,
+    symbol: "A",
+    shares: "10",
+    price: "100",
+  },
+  {
+    id: 1,
+    symbol: "AAT",
+    shares: "10",
+    price: "100",
+  },
+  {
+    id: 2,
+    symbol: "AAOI",
+    shares: "30",
+    price: "20",
+  },
+  {
+    id: 3,
+    symbol: "AAPL",
+    shares: "3",
+    price: "100",
+  },
+  {
+    id: 4,
+    symbol: "ABC",
+    shares: "5",
+    price: "100",
+  },
+  {
+    id: 5,
+    symbol: "ABC",
+    shares: "5",
+    price: "100",
+  },
+];
+
 export const mockTransactions = [
   {
+    id: 0,
     txId: "01e4dsa",
-    user: "johndoe",
-    date: "2021-09-01",
-    cost: "43.95",
+    symbol: "AAPL",
+    currentPrice: "100",
+    predictedPrice: "110",
+    action: "BUY",
+    time: "2021-09-01",
+    cost: "-20.2",
+    profit: "15",
   },
   {
-    txId: "0315dsaa",
-    user: "jackdower",
-    date: "2022-04-01",
-    cost: "133.45",
-  },
-  {
+    id: 1,
     txId: "01e4dsa",
-    user: "aberdohnny",
-    date: "2021-09-01",
+    symbol: "AAPL",
+    currentPrice: "110",
+    predictedPrice: "100",
+    action: "SELL",
+    time: "2021-09-01",
     cost: "43.95",
-  },
-  {
-    txId: "51034szv",
-    user: "goodmanave",
-    date: "2022-11-05",
-    cost: "200.95",
-  },
-  {
-    txId: "0a123sb",
-    user: "stevebower",
-    date: "2022-11-02",
-    cost: "13.55",
-  },
-  {
-    txId: "01e4dsa",
-    user: "aberdohnny",
-    date: "2021-09-01",
-    cost: "43.95",
-  },
-  {
-    txId: "120s51a",
-    user: "wootzifer",
-    date: "2019-04-15",
-    cost: "24.20",
-  },
-  {
-    txId: "0315dsaa",
-    user: "jackdower",
-    date: "2022-04-01",
-    cost: "133.45",
+    profit: "10",
   },
 ];
 
