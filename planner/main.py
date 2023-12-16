@@ -14,7 +14,7 @@ db_client = influxdb_client.InfluxDBClient(
 db_query_api = db_client.query_api()
 
 MQTT_HOST = "localhost"
-MQTT_TOPIC_ANALYZER = "planner/prediction/#"
+MQTT_TOPIC_ANALYZER = "planner/prediction/stock"
 MQTT_TOPIC_EXECUTOR = "executor/action"
 
 def on_connect(client, userdata, flags, rc):
