@@ -1,3 +1,4 @@
+import json
 from math import ceil
 import paho.mqtt.client as mqtt
 import influxdb_client
@@ -115,9 +116,13 @@ def log_transaction(action, stock_symbol, price, profit=None):
 
 def on_message(client, userdata, msg):
     try:
-        action, stock, price = parse_message(msg.payload.decode())
+        payload_dict = json.loads(msg.payload.decode())
+        action = payload_dict["action"]
+        stock = payload_dict["stock"]
+        price = payload_dict["price"]
     except Exception as e:
         print("error decoding received message:", e)
+        return
 
     if action == "buy":
         buy_stock(stock, price)
