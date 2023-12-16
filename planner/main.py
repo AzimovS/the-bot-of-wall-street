@@ -34,15 +34,20 @@ def decide_action(predicted_price, latest_price, stock_symbol):
             return 'sell'
 
 def get_stocks_owned(stock_symbol):
-    query = f'from(bucket:"{INFLUXDB_BUCKET}")\
-        |> range(start:-1h)\
-        |> filter(fn:(r) => r._measurement == "{stock_symbol}")'
     quantity, price = 0, 0
-    tables = db_query_api.query(org=INFLUXDB_ORG, query=query)
-    if len(tables) > 0 and len(tables[0].records > 0):
-        quantity, price = tables[0].records[-1]["quantity"], tables[0].records[-1]["price"]
+    if bucket_exists():
+        query = f'from(bucket:"{INFLUXDB_BUCKET}")\
+            |> range(start:-1h)\
+            |> filter(fn:(r) => r._measurement == "{stock_symbol}")'
+        tables = db_query_api.query(org=INFLUXDB_ORG, query=query)
+        if len(tables) > 0 and len(tables[0].records > 0):
+            quantity, price = tables[0].records[-1]["quantity"], tables[0].records[-1]["price"]
 
     return quantity, price
+
+def bucket_exists():
+    bucket_api = db_client.buckets_api()
+    return bucket_api.find_bucket_by_name(INFLUXDB_BUCKET)
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+msg.payload.decode())

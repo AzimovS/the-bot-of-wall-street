@@ -38,6 +38,12 @@ def parse_message(payload):
         case _:
             raise ValueError(f"Invalid message received: {payload}")
 
+def check_create_bucket(bucket_name):
+    bucket_api = db_client.buckets_api()
+    bucket_response = bucket_api.find_bucket_by_name(bucket_name)
+    if not bucket_response:
+        bucket_api.create_bucket(bucket_name=bucket_name, org=INFLUXDB_ORG)
+
 def buy_stock(stock_symbol, price):
     print("Buying", stock_symbol, "stock at price", price)
     investment = get_investment()
@@ -58,14 +64,15 @@ def sell_stock(stock_symbol, price):
     investment += (quantity * price)
     update_investment(investment)
     update_stocks_owned(stock_symbol, 0, 0)
+
     log_transaction("sell", stock_symbol, price, profit=quantity*(price-buying_price))
 
 def get_investment():
+    value = INVESTMENT_INITIAL_VALUE
     query = f'from(bucket:"{INFLUXDB_BUCKET_PORTFOLIO}")\
         |> range(start:-1h)\
         |> filter(fn:(r) => r._measurement == "investment")\
         |> filter(fn:(r) => r._field == "value")'
-    value = INVESTMENT_INITIAL_VALUE
     result = db_query_api.query(org=INFLUXDB_ORG, query=query)
     if len(result) > 0 and len(result[0].records > 0):
         value = result[0].records[-1].get_value()
@@ -101,6 +108,7 @@ def update_stocks_owned(stock_symbol, quantity, price):
     db_write_api.write(bucket=INFLUXDB_BUCKET_PORTFOLIO, record=point)
 
 def log_transaction(action, stock_symbol, price, profit=None):
+    check_create_bucket(INFLUXDB_BUCKET_TRANSACTIONS)
     fields = {
         "action": action,
         "price": price # TODO add predicted price
@@ -124,6 +132,7 @@ def on_message(client, userdata, msg):
         print("error decoding received message:", e)
         return
 
+    check_create_bucket(INFLUXDB_BUCKET_PORTFOLIO)
     if action == "buy":
         buy_stock(stock, price)
     else:
