@@ -10,6 +10,7 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
     #client.subscribe("portfolio")
     client.subscribe("planner/prediction/stock")
+    client.subscribe("analyzer")
 
 def on_message(client, userdata, msg):
     print(msg.payload.decode())
