@@ -7,7 +7,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 # using the or operator is considered an antipattern (b/c it works with any 'falsy' values)
-# but I think it can be used here for conciseness 
+# but I think it can be used here for conciseness
 INFLUXDB_URL = config['influxdb']['URL'] or "http://localhost:8086"
 INFLUXDB_TOKEN = config['influxdb']['TOKEN'] or "se4as_token"
 INFLUXDB_ORG = config['influxdb']['ORG'] or "se4as"
@@ -24,12 +24,14 @@ MQTT_PORT = int(config['mqtt']['port']) or 1883
 MQTT_TOPIC_ANALYZER = "planner/prediction/stock"
 MQTT_TOPIC_EXECUTOR = "executor/action"
 
+
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT with result code "+str(rc))
 
     # NOTE: Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
     client.subscribe(MQTT_TOPIC_ANALYZER)
+
 
 def decide_action(predicted_price, latest_price, stock_symbol):
     quantity_stocks, _ = get_stocks_owned(stock_symbol)
@@ -40,6 +42,7 @@ def decide_action(predicted_price, latest_price, stock_symbol):
         if quantity_stocks > 0:
             return 'sell'
 
+
 def get_stocks_owned(stock_symbol):
     quantity, price = 0, 0
     if bucket_exists():
@@ -49,13 +52,16 @@ def get_stocks_owned(stock_symbol):
         tables = db_query_api.query(org=INFLUXDB_ORG, query=query)
         if len(tables) > 0 and len(tables[0].records) > 0:
             last_record = tables[0].records[-1]
-            quantity, price = int(last_record["quantity"]), last_record.get_value()
+            quantity, price = int(
+                last_record["quantity"]), last_record.get_value()
 
     return quantity, price
+
 
 def bucket_exists():
     bucket_api = db_client.buckets_api()
     return bucket_api.find_bucket_by_name(INFLUXDB_BUCKET)
+
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+msg.payload.decode())
@@ -69,14 +75,16 @@ def on_message(client, userdata, msg):
     predicted_price = payload_dict['predicted_price']
     latest_price = payload_dict['current_price']
     action = decide_action(predicted_price, latest_price, stock_symbol)
-    if action is not None:
-        executor_payload = {
-            "action": action,
-            "stock": stock_symbol,
-            "price": latest_price,
-            "predicted_price": predicted_price
-        }
-        client.publish(MQTT_TOPIC_EXECUTOR, json.dumps(executor_payload, indent=None))
+
+    executor_payload = {
+        "action": action or "continue",
+        "stock": stock_symbol,
+        "price": latest_price,
+        "predicted_price": predicted_price
+    }
+    client.publish(MQTT_TOPIC_EXECUTOR, json.dumps(
+        executor_payload, indent=None))
+
 
 mqtt_client = mqtt.Client()
 mqtt_client.on_connect = on_connect

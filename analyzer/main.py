@@ -6,8 +6,10 @@ import pickle
 from os.path import exists
 import paho.mqtt.client as mqtt
 import json
+import os
 
 # mqtt
+
 broker = '173.30.0.100'
 port = 1883
 analyze_stock_topic = "analyzer/predict/stock"
@@ -77,7 +79,10 @@ def train_model(results):
    return model
 
 def save_model(stock_symbol, model):
-   with open(f'models/{stock_symbol}.pkl', 'wb') as f:
+   folder = "models"
+   if not os.path.exists(folder):
+      os.makedirs(folder)
+   with open(f'{folder}/{stock_symbol}.pkl', 'wb') as f:
       pickle.dump(model, f)
 
 def retrieve_model(stock_symbol):

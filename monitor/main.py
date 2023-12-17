@@ -32,6 +32,7 @@ def on_connect(mqtt_client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     mqtt_client.subscribe(stock_added_topic)
     mqtt_client.subscribe(topic_for_monitoring)
+    mqtt_client.subscribe(stock_removed_topic)
 
 
 def save_entries_to_db(stock_symbol, start_row, end_row):
