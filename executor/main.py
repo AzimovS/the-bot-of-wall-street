@@ -1,14 +1,18 @@
 import json
+import configparser
 from math import ceil
 import paho.mqtt.client as mqtt
 import influxdb_client
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-INFLUXDB_URL = "http://localhost:8086"
-INFLUXDB_TOKEN = "se4as_token"
-INFLUXDB_ORG = "se4as"
-INFLUXDB_BUCKET_PORTFOLIO = "portfolio"
-INFLUXDB_BUCKET_TRANSACTIONS = "transactions"
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+INFLUXDB_URL = config['influxdb']['URL'] or "http://localhost:8086"
+INFLUXDB_TOKEN = config['influxdb']['TOKEN'] or "se4as_token"
+INFLUXDB_ORG = config['influxdb']['ORG'] or "se4as"
+INFLUXDB_BUCKET_PORTFOLIO = config['influxdb']['PORTFOLIO_BUCKET_NAME'] or "portfolio"
+INFLUXDB_BUCKET_TRANSACTIONS = config['influxdb']['TRANSACTION_BUCKET_NAME'] or "transactions"
 
 db_client = influxdb_client.InfluxDBClient(
     url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG
@@ -17,7 +21,8 @@ db_client = influxdb_client.InfluxDBClient(
 db_query_api = db_client.query_api()
 db_write_api = db_client.write_api(write_options=SYNCHRONOUS)
 
-MQTT_HOST = "localhost"
+MQTT_HOST = config['mqtt']['broker'] or "localhost"
+MQTT_PORT = int(config['mqtt']['port']) or 1883
 MQTT_TOPIC_ACTION = "executor/action"
 MQTT_TOPIC_MONITOR = "monitor/completed"
 
@@ -150,6 +155,6 @@ mqtt_client = mqtt.Client()
 mqtt_client.on_connect = on_connect
 mqtt_client.on_message = on_message
 
-mqtt_client.connect(MQTT_HOST, 1883, 60)
+mqtt_client.connect(MQTT_HOST, MQTT_PORT, 60)
 
 mqtt_client.loop_forever()

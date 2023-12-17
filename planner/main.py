@@ -1,11 +1,17 @@
 import json
+import configparser
 import paho.mqtt.client as mqtt
 import influxdb_client
 
-INFLUXDB_URL = "http://localhost:8086"
-INFLUXDB_TOKEN = "se4as_token"
-INFLUXDB_ORG = "se4as"
-INFLUXDB_BUCKET = "portfolio"
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+# using the or operator is considered an antipattern (b/c it works with any 'falsy' values)
+# but I think it can be used here for conciseness 
+INFLUXDB_URL = config['influxdb']['URL'] or "http://localhost:8086"
+INFLUXDB_TOKEN = config['influxdb']['TOKEN'] or "se4as_token"
+INFLUXDB_ORG = config['influxdb']['ORG'] or "se4as"
+INFLUXDB_BUCKET = config['influxdb']['BUCKET_NAME'] or "portfolio"
 
 db_client = influxdb_client.InfluxDBClient(
     url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG
@@ -13,7 +19,8 @@ db_client = influxdb_client.InfluxDBClient(
 
 db_query_api = db_client.query_api()
 
-MQTT_HOST = "localhost"
+MQTT_HOST = config['mqtt']['broker'] or "localhost"
+MQTT_PORT = int(config['mqtt']['port']) or 1883
 MQTT_TOPIC_ANALYZER = "planner/prediction/stock"
 MQTT_TOPIC_EXECUTOR = "executor/action"
 
@@ -75,7 +82,7 @@ mqtt_client = mqtt.Client()
 mqtt_client.on_connect = on_connect
 mqtt_client.on_message = on_message
 
-mqtt_client.connect(MQTT_HOST, 1883, 60)
+mqtt_client.connect(MQTT_HOST, MQTT_PORT, 60)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
