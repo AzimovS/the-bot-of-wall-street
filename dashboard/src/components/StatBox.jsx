@@ -16,7 +16,7 @@ const StatBox = ({ title, subtitle, icon, progress, increase }) => {
             fontWeight="bold"
             sx={{ color: colors.grey[100] }}
           >
-            {title}
+            ${parseFloat(title).toFixed(2)}
           </Typography>
         </Box>
         {progress && (<Box>

@@ -125,7 +125,7 @@ const Sidebar = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Data
+              Portfolio
             </Typography>
             <Item
               title="Manage Stocks"

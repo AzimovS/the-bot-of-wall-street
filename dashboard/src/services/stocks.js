@@ -6,10 +6,18 @@ export const getStocks = () => {
   return axios.get(`${API_ROOT}/stock-list`).then((res) => res.data);
 };
 
+export const getPortfolio = () => {
+  return axios.get(`${API_ROOT}/portfolio`).then((res) => res.data);
+};
+
+export const getTransactions = () => {
+  return axios.get(`${API_ROOT}/transactions`).then((res) => res.data);
+};
+
 export const addStock = (stock) => {
   return axios
     .post(`${API_ROOT}/add-stock?stock=${stock}`)
-    .then((res) => res?.data)
+    .then((res) => res?.data);
 };
 
 export const removeStock = (stock) => {

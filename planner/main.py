@@ -41,20 +41,23 @@ def decide_action(predicted_price, latest_price, stock_symbol):
     else:
         if quantity_stocks > 0:
             return 'sell'
+    return 'continue'
 
 
 def get_stocks_owned(stock_symbol):
     quantity, price = 0, 0
     if bucket_exists():
-        query = f'from(bucket:"{INFLUXDB_BUCKET}")\
-            |> range(start:-1h)\
-            |> filter(fn:(r) => r._measurement == "{stock_symbol}")'
+        query = f'from(bucket: "{INFLUXDB_BUCKET}")\
+                        |> range(start: -12h)\
+                        |> filter(fn: (r) => r["_measurement"] == "{stock_symbol}")\
+                        |> group()\
+                        |> sort(columns: ["_time"], desc: false)\
+                        |> last()'
         tables = db_query_api.query(org=INFLUXDB_ORG, query=query)
         if len(tables) > 0 and len(tables[0].records) > 0:
-            last_record = tables[0].records[-1]
+            last_record = tables[-1].records[-1]
             quantity, price = int(
-                last_record["quantity"]), last_record.get_value()
-
+                last_record['quantity']), last_record['_value']
     return quantity, price
 
 
@@ -77,7 +80,7 @@ def on_message(client, userdata, msg):
     action = decide_action(predicted_price, latest_price, stock_symbol)
 
     executor_payload = {
-        "action": action or "continue",
+        "action": action,
         "stock": stock_symbol,
         "price": latest_price,
         "predicted_price": predicted_price
