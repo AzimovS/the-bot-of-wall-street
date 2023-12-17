@@ -36,10 +36,10 @@ def on_message(mqtt_client, userdata, message):
            result = query_influxdb(bucket, stock_symbol, "Open")
            parsed_results, last_day, last_price = parse_db_results(result)
            predicted_price = call_model(stock_symbol, parsed_results, last_day, last_price)
+           payload = {'stock_symbol': stock_symbol, 'current_price': last_price, 'predicted_price': predicted_price}
+           mqtt_client.publish(plan_stock_topic, json.dumps(payload))
         except:
            print("An error has occurred while querying the database. Please check stock symbol is a valid measurement")
-        payload = {'stock_symbol': stock_symbol, 'current_price': last_price, 'predicted_price': predicted_price}
-        mqtt_client.publish(plan_stock_topic, json.dumps(payload))
 
 def query_influxdb(bucket, measurement, field):
    query = f'from(bucket:"{bucket}")\
