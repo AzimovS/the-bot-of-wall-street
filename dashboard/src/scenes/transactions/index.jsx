@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockTransactions } from "../../data/mockData";
 import Header from "../../components/Header";
 import { useTheme } from "@mui/material";
 import { getTransactions } from "../../services/stocks";
@@ -27,7 +26,6 @@ const Transactions = () => {
   }, []);
 
   const columns = [
-    { field: "table", headerName: "ID", flex: 0.2 },
     {
       field: "_time",
       headerName: "Time",

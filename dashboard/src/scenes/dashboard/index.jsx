@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-import { mockTransactions, mockStocks } from "../../data/mockData";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import Header from "../../components/Header";
 import StatBox from "../../components/StatBox";
@@ -31,7 +30,7 @@ const Dashboard = () => {
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [isLoading]);
 
   return (
     <Box m="0 30px 30px 30px">
@@ -116,7 +115,7 @@ const Dashboard = () => {
         {isLoading
           ? "Loading..."
           : portfolio.length === 0
-          ? "You don't have any stocks"
+          ? "No stocks"
           : portfolio.map((stock, index) => (
               <Box
                 key={index}
