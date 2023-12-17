@@ -97,6 +97,38 @@ services:
       - influxdb
     links:
       - influxdb
+  
+  planner:
+    build:
+      context: ./planner/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./planner/:/usr/src/app/
+    restart: always
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.106
+    depends_on:
+      - mosquitto
+      - influxdb
+    links:
+      - influxdb
+
+  executor:
+    build:
+      context: ./executor/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./executor/:/usr/src/app/
+    restart: always
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.107
+    depends_on:
+      - mosquitto
+      - influxdb
+    links:
+      - influxdb
 
 volumes:
   influxdb_data: {}

@@ -18,13 +18,14 @@ const StockBox = ({ stockSymbol, shares, price }) => {
           </Typography>
         </Box>
 
-        <Box width="30%" height="30%">
+        <Box width="25%" height="25%">
           <img
-            alt="profile-user"
+            // style="text-indent:-9999px"
             width="100%"
             object-fit="cover"
             src={`../../assets/${stockSymbol}.png`}
-            style={{ cursor: "pointer", borderRadius: "10%" }}
+            style={{ borderRadius: "10%" }}
+            onError={(event) => (event.target.src = "")}
           />
         </Box>
       </Box>
@@ -37,7 +38,7 @@ const StockBox = ({ stockSymbol, shares, price }) => {
           fontStyle="italic"
           sx={{ color: colors.greenAccent[600] }}
         >
-          ${price}
+          ${price?.toFixed(3)}
         </Typography>
       </Box>
     </Box>

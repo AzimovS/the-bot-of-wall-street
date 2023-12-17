@@ -41,6 +41,16 @@ def get_stock_list():
     return json.loads(portfolio.get_stock_list())
 
 
+@app.get("/portfolio")
+def get_stock_list():
+    return portfolio.get_portfolio()
+
+
+@app.get("/transactions")
+def get_stock_list():
+    return json.loads(portfolio.get_transactions())
+
+
 @app.post("/add-stock")
 def add_stock(stock: str):
     is_added = portfolio.add_stock(stock)

@@ -1,15 +1,36 @@
+import { useState, useEffect } from "react";
 import { Box, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-import { mockTransactions, mockStocks } from "../../data/mockData";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import ShowChartIcon from "@mui/icons-material/ShowChart";
 import Header from "../../components/Header";
 import StatBox from "../../components/StatBox";
 import StockBox from "../../components/StockBox";
+import { getPortfolio, getTransactions } from "../../services/stocks";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [portfolio, setPortfolio] = useState([]);
+  const [isLoading, SetIsLoading] = useState(true);
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    let interval = setInterval(
+      () => {
+        SetIsLoading(false);
+        getPortfolio().then((res) => {
+          setPortfolio(res);
+        });
+        getTransactions().then((res) => {
+          setTransactions(res);
+        });
+      },
+      isLoading ? 1000 : 5000
+    );
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isLoading]);
 
   return (
     <Box m="0 30px 30px 30px">
@@ -33,7 +54,9 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="$12361"
+            title={portfolio.reduce((accumulator, stock) => {
+              return accumulator + stock.shares * stock.price;
+            }, 0)}
             subtitle="Current portfolio"
             icon={
               <MonetizationOnIcon
@@ -42,7 +65,7 @@ const Dashboard = () => {
             }
           />
         </Box>
-        <Box
+        {/* <Box
           gridColumn="span 2"
           backgroundColor={colors.primary[400]}
           display="flex"
@@ -58,9 +81,9 @@ const Dashboard = () => {
               />
             }
           />
-        </Box>
+        </Box> */}
         <Box
-          gridColumn="span 8"
+          gridColumn="span 10"
           display="flex"
           alignItems="center"
           justifyContent="center"
@@ -89,21 +112,26 @@ const Dashboard = () => {
         gap="20px"
       >
         {/* ROW 2 */}
-        {mockStocks.map((stock, i) => (
-          <Box
-            gridColumn="span 3"
-            backgroundColor={colors.primary[400]}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <StockBox
-              stockSymbol={stock.symbol}
-              shares={stock.shares}
-              price={stock.price}
-            />
-          </Box>
-        ))}
+        {isLoading
+          ? "Loading..."
+          : portfolio.length === 0
+          ? "No stocks"
+          : portfolio.map((stock, index) => (
+              <Box
+                key={index}
+                gridColumn="span 3"
+                backgroundColor={colors.primary[400]}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <StockBox
+                  stockSymbol={stock.symbol}
+                  shares={stock.shares}
+                  price={stock.price}
+                />
+              </Box>
+            ))}
 
         {/* ROW 3 */}
         <Box
@@ -124,9 +152,9 @@ const Dashboard = () => {
               Recent Transactions
             </Typography>
           </Box>
-          {mockTransactions.map((transaction, i) => (
+          {transactions.map((transaction, i) => (
             <Box
-              key={`${transaction.txId}-${i}`}
+              key={`${transaction.table}-${transaction._time}`}
               display="flex"
               justifyContent="space-between"
               alignItems="center"
@@ -139,32 +167,18 @@ const Dashboard = () => {
                   variant="h5"
                   fontWeight="600"
                 >
-                  {transaction.symbol}
-                </Typography>
-                <Typography color={colors.grey[100]}>
-                  {transaction.txId}
+                  {transaction._measurement}
                 </Typography>
               </Box>
 
               <Box flex="1" color={colors.grey[100]}>
-                {transaction.time}
+                {transaction._time?.slice(0, 19)}
               </Box>
               <Box flex="1" color={colors.grey[100]}>
-                {transaction.action}
+                {transaction?.action === "buy" ? "BUY" : "SELL"}
               </Box>
               <Box flex="1" color={colors.grey[100]}>
-                {transaction.cost}
-              </Box>
-              <Box flex="1" color={colors.grey[100]}>
-                {transaction.profit}
-              </Box>
-
-              <Box
-                backgroundColor={colors.greenAccent[500]}
-                p="5px 10px"
-                borderRadius="4px"
-              >
-                ${transaction.cost}
+                ${parseFloat(transaction?.price).toFixed(3)}
               </Box>
             </Box>
           ))}

@@ -6,8 +6,10 @@ import pickle
 from os.path import exists
 import paho.mqtt.client as mqtt
 import json
+import os
 
 # mqtt
+
 broker = '173.30.0.100'
 port = 1883
 analyze_stock_topic = "analyzer/predict/stock"
@@ -36,10 +38,10 @@ def on_message(mqtt_client, userdata, message):
            result = query_influxdb(bucket, stock_symbol, "Open")
            parsed_results, last_day, last_price = parse_db_results(result)
            predicted_price = call_model(stock_symbol, parsed_results, last_day, last_price)
+           payload = {'stock_symbol': stock_symbol, 'current_price': last_price, 'predicted_price': predicted_price}
+           mqtt_client.publish(plan_stock_topic, json.dumps(payload))
         except:
            print("An error has occurred while querying the database. Please check stock symbol is a valid measurement")
-        payload = {'stock_symbol': stock_symbol, 'current_price': last_price, 'predicted_price': predicted_price}
-        mqtt_client.publish(plan_stock_topic, json.dumps(payload))
 
 def query_influxdb(bucket, measurement, field):
    query = f'from(bucket:"{bucket}")\
@@ -77,7 +79,10 @@ def train_model(results):
    return model
 
 def save_model(stock_symbol, model):
-   with open(f'models/{stock_symbol}.pkl', 'wb') as f:
+   folder = "models"
+   if not os.path.exists(folder):
+      os.makedirs(folder)
+   with open(f'{folder}/{stock_symbol}.pkl', 'wb') as f:
       pickle.dump(model, f)
 
 def retrieve_model(stock_symbol):

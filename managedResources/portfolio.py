@@ -13,6 +13,8 @@ ORG = config['influxdb']['ORG']
 TRACKING_BUCKET_NAME = config['influxdb']['TRACKING_BUCKET_NAME']
 CSV_COLS = config['influxdb']['CSV_COLS'].split('|')
 STARTTIME = config['influxdb']['STARTTIME']
+INFLUXDB_BUCKET_PORTFOLIO = "portfolio"
+INFLUXDB_BUCKET_TRANSACTIONS = "transactions"
 
 
 class Portfolio:
@@ -78,3 +80,37 @@ class Portfolio:
     def remove_stock(self, stock: str) -> bool:
         is_updated = self.update_db(stock, False)
         return is_updated
+
+    def get_portfolio(self):
+        q = f'import "influxdata/influxdb/schema"\n\nschema.measurements(bucket: "{INFLUXDB_BUCKET_PORTFOLIO}")'
+        result = self.db_client.query_api().query(org=ORG, query=q)
+        check_stocks = [record['_value']
+                        for record in result[0].records if record['_value'] != 'investment']
+
+        portfolio = []
+        for check_stock in check_stocks:
+            query = f'from(bucket: "{INFLUXDB_BUCKET_PORTFOLIO}")\
+                        |> range(start: {STARTTIME})\
+                        |> filter(fn: (r) => r["_measurement"] == "{check_stock}")\
+                        |> group()\
+                        |> sort(columns: ["_time"], desc: false)\
+                        |> last()'
+            value, price = 0, 0
+            tables = self.db_client.query_api().query(org=ORG, query=query)
+            if len(tables) > 0 and len(tables[0].records) > 0:
+                last_record = tables[0].records[-1]
+                value, price = int(
+                    last_record["quantity"]), last_record.get_value()
+                if value > 0:
+                    stock_entry = {"symbol": check_stock,
+                                   "shares": value, "price": price}
+                    portfolio.append(stock_entry)
+        return portfolio
+
+    def get_transactions(self):
+        query = f'from(bucket:"{INFLUXDB_BUCKET_TRANSACTIONS}")\
+            |> range(start: {STARTTIME})\
+            |> group()\
+            |> sort(columns: ["_time"], desc: true)'
+        result = self.db_client.query_api().query(org="se4as", query=query)
+        return result.to_json()
