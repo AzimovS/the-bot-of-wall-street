@@ -4,7 +4,7 @@ import { tokens } from "../theme";
 import { useTheme } from "@mui/material";
 import { getPortfolio } from "../services/stocks";
 
-const PieChart = () => {
+const PortfolioPieChart = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [portfolio, setPortfolio] = useState([]);
@@ -131,4 +131,4 @@ const PieChart = () => {
   );
 };
 
-export default PieChart;
+export default PortfolioPieChart;
