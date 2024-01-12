@@ -27,13 +27,12 @@ Project developed for the Software Engineering for Autonomous System course - Un
 
 ### Prerequisites
 
-Here are things you want to have on your computer beforehand.
+Here are things you need to have on your computer beforehand.
 
 * Docker
 
 ### Installation
 
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
 
 1. Clone the repo
    ```sh
