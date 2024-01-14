@@ -1,0 +1,141 @@
+version: "3.6"
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto-as
+    restart: always
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/data/:/mosquitto/data
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.100
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+
+  influxdb:
+    image: influxdb:2.4-alpine
+    container_name: influxdb
+    restart: always
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=se4as_token
+      - DOCKER_INFLUXDB_INIT_ORG=se4as
+      - DOCKER_INFLUXDB_INIT_BUCKET=stocks
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.101
+
+  managed_resources:
+    build:
+      context: ./managedResources/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./managedResources/:/usr/src/app/
+    restart: always
+    ports:
+      - "8000:8000"
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.102
+    depends_on:
+      - mosquitto
+    links:
+      - influxdb
+
+  frontend:
+    build:
+      context: ./dashboard/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./dashboard/:/usr/src/app/
+    restart: always
+    depends_on:
+      - managed_resources
+    ports:
+      - "5001:5001"
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.103
+
+
+  monitor:
+    build:
+      context: ./monitor/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./monitor/:/usr/src/app/
+    restart: always
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.104
+    depends_on:
+      - mosquitto
+      - managed_resources
+    links:
+      - influxdb
+  
+  analyzer:
+    build:
+      context: ./analyzer/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./analyzer/:/usr/src/app/
+    restart: always
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.105
+    depends_on:
+      - mosquitto
+      - influxdb
+    links:
+      - influxdb
+  
+  planner:
+    build:
+      context: ./planner/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./planner/:/usr/src/app/
+    restart: always
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.106
+    depends_on:
+      - mosquitto
+      - influxdb
+    links:
+      - influxdb
+
+  executor:
+    build:
+      context: ./executor/
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./executor/:/usr/src/app/
+    restart: always
+    networks:
+      se4as-network:
+        ipv4_address: 173.30.0.107
+    depends_on:
+      - mosquitto
+      - influxdb
+    links:
+      - influxdb
+
+volumes:
+  influxdb_data: {}
+
+networks:
+  se4as-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 173.30.0.0/16
