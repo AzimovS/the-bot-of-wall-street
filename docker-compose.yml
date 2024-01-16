@@ -2,7 +2,7 @@ version: "3.6"
 services:
   mosquitto:
     image: eclipse-mosquitto:latest
-    container_name: mosquitto-as
+    container_name: mosquitto-stb
     restart: always
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
@@ -16,7 +16,7 @@ services:
 
   influxdb:
     image: influxdb:2.4-alpine
-    container_name: influxdb
+    container_name: influxdb-stb
     restart: always
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
@@ -34,6 +34,7 @@ services:
         ipv4_address: 173.30.0.101
 
   managed_resources:
+    container_name: managed-resources-stb
     build:
       context: ./managedResources/
       dockerfile: ./Dockerfile
@@ -51,6 +52,7 @@ services:
       - influxdb
 
   frontend:
+    container_name: frontend-stb
     build:
       context: ./dashboard/
       dockerfile: ./Dockerfile
@@ -67,6 +69,7 @@ services:
 
 
   monitor:
+    container_name: monitor-stb
     build:
       context: ./monitor/
       dockerfile: ./Dockerfile
@@ -83,6 +86,7 @@ services:
       - influxdb
   
   analyzer:
+    container_name: analyzer-stb
     build:
       context: ./analyzer/
       dockerfile: ./Dockerfile
@@ -99,6 +103,7 @@ services:
       - influxdb
   
   planner:
+    container_name: planner-stb
     build:
       context: ./planner/
       dockerfile: ./Dockerfile
@@ -115,6 +120,7 @@ services:
       - influxdb
 
   executor:
+    container_name: executor-stb
     build:
       context: ./executor/
       dockerfile: ./Dockerfile
